@@ -35,7 +35,6 @@
 
         .control-group { margin-bottom: 20px; }
         .control-group label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; color: var(--text-main); }
-        .control-group input[type="time"],
         .control-group select {
             width: 100%; padding: 10px; border: 1px solid var(--border);
             border-radius: 4px; font-size: 14px; background: #fff;
@@ -54,6 +53,40 @@
             flex: 1; text-align: center; font-size: 18px; font-weight: bold;
             color: var(--primary); padding: 10px 0; user-select: none;
         }
+
+        /* Flip clock */
+        .flip-clock { display: flex; gap: 5px; align-items: center; }
+        .flip-tile {
+            position: relative; flex: 1; height: 82px;
+            background: #fff; border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.07);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; -webkit-tap-highlight-color: transparent;
+        }
+        .flip-num {
+            font-size: 48px; font-weight: 900; color: #111; line-height: 1;
+            pointer-events: none; z-index: 1; font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+        .flip-tile-ampm .flip-num { font-size: 17px; letter-spacing: 0.5px; font-weight: 800; }
+        .flip-zone {
+            position: absolute; left: 0; right: 0; height: 50%; z-index: 2;
+            display: flex; justify-content: center; align-items: flex-end;
+            padding-bottom: 3px; cursor: pointer; transition: background 0.1s;
+        }
+        .flip-zone.flip-dn { top: auto; bottom: 0; align-items: flex-start; padding-bottom: 0; padding-top: 3px; }
+        .flip-zone.flip-up { top: 0; }
+        .flip-zone:hover { background: rgba(0,0,0,0.06); }
+        .flip-zone:active { background: rgba(0,0,0,0.13); }
+        .flip-arrow { font-size: 8px; color: rgba(0,0,0,0.22); pointer-events: none; }
+        .flip-line {
+            position: absolute; top: 50%; left: 0; right: 0; height: 1px;
+            background: rgba(0,0,0,0.09); box-shadow: 0 1px 0 rgba(255,255,255,0.8);
+            z-index: 3; pointer-events: none;
+        }
+        .flip-sep { font-size: 28px; font-weight: 900; color: var(--primary); flex-shrink: 0; padding-bottom: 6px; line-height: 1; }
+        @keyframes flipPulse { 0%,100%{opacity:1} 40%{opacity:0.3} }
+        .flip-change { animation: flipPulse 0.16s ease; }
 
         /* Mobile tab bar */
         .tab-bar { display: none; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 16px; }
@@ -208,7 +241,33 @@
 
             <div class="control-group">
                 <label>Target Dinner Time</label>
-                <input type="time" id="target-time" value="18:30">
+                <div class="flip-clock">
+                    <div class="flip-tile" id="tile-h">
+                        <div class="flip-zone flip-up" onclick="adjustClock('h',1)"><span class="flip-arrow">▲</span></div>
+                        <span class="flip-num" id="clock-h">6</span>
+                        <div class="flip-zone flip-dn" onclick="adjustClock('h',-1)"><span class="flip-arrow">▼</span></div>
+                        <div class="flip-line"></div>
+                    </div>
+                    <div class="flip-sep">:</div>
+                    <div class="flip-tile" id="tile-mt">
+                        <div class="flip-zone flip-up" onclick="adjustClock('mt',1)"><span class="flip-arrow">▲</span></div>
+                        <span class="flip-num" id="clock-mt">3</span>
+                        <div class="flip-zone flip-dn" onclick="adjustClock('mt',-1)"><span class="flip-arrow">▼</span></div>
+                        <div class="flip-line"></div>
+                    </div>
+                    <div class="flip-tile" id="tile-mo">
+                        <div class="flip-zone flip-up" onclick="adjustClock('mo',1)"><span class="flip-arrow">▲</span></div>
+                        <span class="flip-num" id="clock-mo">0</span>
+                        <div class="flip-zone flip-dn" onclick="adjustClock('mo',-1)"><span class="flip-arrow">▼</span></div>
+                        <div class="flip-line"></div>
+                    </div>
+                    <div class="flip-tile flip-tile-ampm" id="tile-ap">
+                        <div class="flip-zone flip-up" onclick="adjustClock('ap',1)"><span class="flip-arrow">▲</span></div>
+                        <span class="flip-num" id="clock-ap">PM</span>
+                        <div class="flip-zone flip-dn" onclick="adjustClock('ap',-1)"><span class="flip-arrow">▼</span></div>
+                        <div class="flip-line"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="control-group">
@@ -437,9 +496,46 @@
         calculate();
     }
 
-    const targetTime = document.getElementById('target-time');
-    const ovenType   = document.getElementById('oven-type');
-    const flourType  = document.getElementById('flour-type');
+    // Flip clock state (24h internally, default 18:30)
+    let clockHours = 18, clockMinutes = 30;
+
+    function updateClockDisplay(changedTile) {
+        const h12 = clockHours % 12 || 12;
+        const ampm = clockHours < 12 ? 'AM' : 'PM';
+        const mt = Math.floor(clockMinutes / 10);
+        const mo = clockMinutes % 10;
+        document.getElementById('clock-h').textContent  = h12;
+        document.getElementById('clock-mt').textContent = mt;
+        document.getElementById('clock-mo').textContent = mo;
+        document.getElementById('clock-ap').textContent = ampm;
+        if (changedTile) {
+            const tile = document.getElementById('tile-' + changedTile);
+            tile.classList.remove('flip-change');
+            void tile.offsetWidth; // reflow to restart animation
+            tile.classList.add('flip-change');
+        }
+        calculate();
+    }
+
+    function adjustClock(unit, delta) {
+        if (unit === 'h') {
+            clockHours = (clockHours + delta + 24) % 24;
+            updateClockDisplay('h');
+        } else if (unit === 'mt') {
+            const t = (Math.floor(clockMinutes / 10) + delta + 6) % 6;
+            clockMinutes = t * 10 + (clockMinutes % 10);
+            updateClockDisplay('mt');
+        } else if (unit === 'mo') {
+            clockMinutes = Math.floor(clockMinutes / 10) * 10 + (clockMinutes % 10 + delta + 10) % 10;
+            updateClockDisplay('mo');
+        } else { // ap — toggle AM/PM
+            clockHours = (clockHours + 12) % 24;
+            updateClockDisplay('ap');
+        }
+    }
+
+    const ovenType  = document.getElementById('oven-type');
+    const flourType = document.getElementById('flour-type');
 
     function parseTime(tStr) {
         const [h, m] = tStr.split(':').map(Number);
@@ -498,7 +594,7 @@
         }
 
         // Timeline dynamics
-        const targetMins = parseTime(targetTime.value);
+        const targetMins = clockHours * 60 + clockMinutes;
         let finalProofMins = 270 - (temp - 22) * 25;
         finalProofMins = Math.max(120, Math.min(420, finalProofMins));
         if (flour === 'pizzeria') finalProofMins = Math.round(finalProofMins * 0.85);
@@ -684,7 +780,7 @@
     }
 
     // --- Init ---
-    [targetTime, ovenType, flourType].forEach(el => {
+    [ovenType, flourType].forEach(el => {
         el.addEventListener('input', calculate);
         el.addEventListener('change', calculate);
     });
