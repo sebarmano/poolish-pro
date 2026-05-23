@@ -40,18 +40,70 @@
             border-radius: 4px; font-size: 14px; background: #fff;
         }
 
-        /* +/− counter */
-        .counter { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-        .counter-btn {
+        /* Prevent double-tap zoom on all interactive elements */
+        button, [role="button"], .step-header { touch-action: manipulation; }
+
+        /* Pizza count widget */
+        .pizza-widget { display: flex; align-items: center; gap: 12px; }
+        .pw-btn {
+            width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
             background: var(--primary); color: white; border: none;
-            width: 48px; font-size: 22px; cursor: pointer; flex-shrink: 0;
-            transition: background 0.15s; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; line-height: 1;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s, transform 0.1s;
         }
-        .counter-btn:hover { background: #2c3e50; }
-        .counter-btn:active { background: var(--accent); }
-        .counter-val {
-            flex: 1; text-align: center; font-size: 18px; font-weight: bold;
-            color: var(--primary); padding: 10px 0; user-select: none;
+        .pw-btn:hover { background: #2c3e50; }
+        .pw-btn:active { background: var(--accent); transform: scale(0.93); }
+        .pw-tile {
+            flex: 1; height: 82px; position: relative;
+            background: #fff; border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.07);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 1px;
+        }
+        .pw-num { font-size: 48px; font-weight: 900; color: #111; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; }
+        .pw-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); font-weight: 600; pointer-events: none; }
+
+        /* Thermometer widget */
+        .thermo-widget { display: flex; align-items: center; gap: 12px; }
+        .thermo-btn {
+            width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+            background: var(--primary); color: white; border: none;
+            font-size: 24px; cursor: pointer; line-height: 1;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .thermo-btn:hover { background: #2c3e50; }
+        .thermo-btn:active { background: var(--accent); transform: scale(0.93); }
+        .thermo-body { flex: 1; }
+        .thermo-track {
+            position: relative; height: 26px; border-radius: 13px; overflow: hidden;
+            background: linear-gradient(to right, #3498db 0%, #2ecc71 30%, #f39c12 65%, #e74c3c 100%);
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
+        }
+        .thermo-unfill {
+            position: absolute; right: 0; top: 0; bottom: 0;
+            background: #e0e0e0;
+            transition: width 0.22s ease;
+        }
+        .thermo-thumb {
+            position: absolute; top: 50%; z-index: 2;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: white; box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            transition: left 0.22s ease;
+        }
+        .thermo-scale {
+            display: flex; justify-content: space-between;
+            font-size: 9px; color: var(--text-muted); margin-top: 4px; padding: 0 2px;
+        }
+        .thermo-readout {
+            text-align: center; font-size: 26px; font-weight: 900;
+            color: var(--primary); margin-top: 4px; line-height: 1;
+            font-variant-numeric: tabular-nums;
         }
 
         /* Flip clock */
@@ -223,19 +275,32 @@
 
             <div class="control-group">
                 <label>Number of Pizzas</label>
-                <div class="counter">
-                    <button class="counter-btn" onclick="adjustValue('qty',-1)">−</button>
-                    <span class="counter-val" id="qty-val">6</span>
-                    <button class="counter-btn" onclick="adjustValue('qty',1)">+</button>
+                <div class="pizza-widget">
+                    <button class="pw-btn" onclick="adjustValue('qty',-1)">−</button>
+                    <div class="pw-tile" id="pw-tile">
+                        <span class="pw-num" id="qty-val">6</span>
+                        <span class="pw-label">pizzas</span>
+                        <div class="flip-line"></div>
+                    </div>
+                    <button class="pw-btn" onclick="adjustValue('qty',1)">+</button>
                 </div>
             </div>
 
             <div class="control-group">
                 <label>Ambient Kitchen Temp</label>
-                <div class="counter">
-                    <button class="counter-btn" onclick="adjustValue('temp',-1)">−</button>
-                    <span class="counter-val" id="temp-val">22°C</span>
-                    <button class="counter-btn" onclick="adjustValue('temp',1)">+</button>
+                <div class="thermo-widget">
+                    <button class="thermo-btn" onclick="adjustValue('temp',-1)">−</button>
+                    <div class="thermo-body">
+                        <div class="thermo-track">
+                            <div class="thermo-unfill" id="thermo-unfill"></div>
+                            <div class="thermo-thumb" id="thermo-thumb"></div>
+                        </div>
+                        <div class="thermo-scale">
+                            <span>16°</span><span>20°</span><span>22°</span><span>26°</span><span>30°</span>
+                        </div>
+                        <div class="thermo-readout" id="temp-val">22°C</div>
+                    </div>
+                    <button class="thermo-btn" onclick="adjustValue('temp',1)">+</button>
                 </div>
             </div>
 
@@ -485,13 +550,24 @@
     let qtyValue = 6, tempValue = 22;
     const QTY_MIN = 1, QTY_MAX = 20, TEMP_MIN = 16, TEMP_MAX = 30;
 
+    function updateThermo() {
+        const pct = (tempValue - TEMP_MIN) / (TEMP_MAX - TEMP_MIN);
+        document.getElementById('thermo-unfill').style.width = (1 - pct) * 100 + '%';
+        document.getElementById('thermo-thumb').style.left  = pct * 100 + '%';
+        document.getElementById('temp-val').textContent = tempValue + '°C';
+    }
+
     function adjustValue(type, delta) {
         if (type === 'qty') {
             qtyValue = Math.max(QTY_MIN, Math.min(QTY_MAX, qtyValue + delta));
             document.getElementById('qty-val').textContent = qtyValue;
+            const tile = document.getElementById('pw-tile');
+            tile.classList.remove('flip-change');
+            void tile.offsetWidth;
+            tile.classList.add('flip-change');
         } else {
             tempValue = Math.max(TEMP_MIN, Math.min(TEMP_MAX, tempValue + delta));
-            document.getElementById('temp-val').textContent = tempValue + '°C';
+            updateThermo();
         }
         calculate();
     }
@@ -780,6 +856,7 @@
     }
 
     // --- Init ---
+    updateThermo();
     [ovenType, flourType].forEach(el => {
         el.addEventListener('input', calculate);
         el.addEventListener('change', calculate);
