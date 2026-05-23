@@ -1,0 +1,13 @@
+{
+  "name": "Poolish Pro",
+  "short_name": "Poolish",
+  "description": "Poolish pizza timeline and ingredients calculator for your next pizza night",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1a252f",
+  "theme_color": "#d35400",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

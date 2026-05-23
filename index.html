@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poolish Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d35400">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Poolish Pro">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary: #1a252f;
+            --accent: #d35400;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border: #dcdde1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; line-height: 1.6; }
+        .wrapper { max-width: 1000px; margin: 0 auto; }
+        header { background: var(--primary); color: #fff; padding: 30px; border-radius: 8px 8px 0 0; text-align: center; border-bottom: 5px solid var(--accent); }
+        header h1 { font-size: 24px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        header p { color: #bdc3c7; font-style: italic; font-size: 14px; }
+
+        .main-layout { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
+        @media (min-width: 768px) { .main-layout { grid-template-columns: 350px 1fr; } }
+
+        .panel { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; }
+        .panel h2 { font-size: 16px; text-transform: uppercase; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 5px; }
+
+        .control-group { margin-bottom: 20px; }
+        .control-group label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; color: var(--text-main); }
+        .control-group input[type="range"],
+        .control-group input[type="time"],
+        .control-group input[type="date"],
+        .control-group select {
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 4px; font-size: 14px; background: #fff;
+        }
+        .val-display { float: right; color: var(--accent); font-weight: bold; }
+
+        /* Mobile tab bar */
+        .tab-bar { display: none; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 16px; }
+        @media (max-width: 767px) { .tab-bar { display: flex; } }
+        .tab { flex: 1; padding: 11px; border: none; background: var(--card-bg); color: var(--text-muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+        .tab.active { background: var(--primary); color: #fff; }
+        @media (max-width: 767px) { .section-hidden { display: none !important; } }
+
+        .results-area { display: flex; flex-direction: column; gap: 20px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card h2 { font-size: 16px; text-transform: uppercase; color: var(--primary); margin-bottom: 15px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+
+        .ingredients-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 480px) { .ingredients-grid { grid-template-columns: 1fr 1fr; } }
+        .ing-box { background: #f8f9fa; border-left: 4px solid var(--primary); padding: 15px; border-radius: 0 4px 4px 0; }
+        .ing-box.accent-box { border-left-color: var(--accent); background: #fffaf0; }
+        .ing-box h3 { font-size: 13px; text-transform: uppercase; margin-bottom: 8px; color: var(--text-main); }
+        .ing-box ul { list-style: none; }
+        .ing-box li { font-size: 14px; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .ing-box li span { font-weight: bold; color: var(--accent); }
+
+        /* Collapsible timeline */
+        .timeline { position: relative; padding-left: 20px; border-left: 2px solid var(--border); margin-top: 15px; }
+        .timeline-step { position: relative; margin-bottom: 20px; }
+        .timeline-step::before {
+            content: ''; position: absolute; left: -26px; top: 8px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--accent); border: 2px solid #fff; box-shadow: 0 0 0 2px var(--accent);
+        }
+        .step-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            cursor: pointer; user-select: none; padding: 4px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .step-header:hover .step-title { color: var(--accent); }
+        .step-header-left { flex: 1; min-width: 0; }
+        .time-tag {
+            display: inline-block; background: var(--primary); color: #fff;
+            font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-bottom: 4px;
+        }
+        .step-title { display: block; font-weight: bold; font-size: 14px; color: var(--primary); }
+        .chevron {
+            font-size: 20px; color: var(--text-muted); flex-shrink: 0;
+            margin-left: 10px; margin-top: 4px; line-height: 1;
+            transition: transform 0.2s, color 0.2s;
+        }
+        .timeline-step.open .chevron { transform: rotate(90deg); color: var(--accent); }
+        .step-desc {
+            display: none; font-size: 13.5px; color: #34495e;
+            margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border);
+        }
+        .timeline-step.open .step-desc { display: block; }
+
+        .tip-box { background: #eef9ff; border-left: 4px solid #3498db; padding: 15px; font-size: 13px; border-radius: 4px; margin-top: 15px; }
+
+        /* Buttons */
+        .print-btn {
+            background: var(--accent); color: white; border: none; padding: 12px 20px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;
+            margin-top: 10px; text-transform: uppercase; font-size: 14px;
+        }
+        .print-btn:hover { background: #a04000; }
+        .notify-btn {
+            background: var(--primary); color: white; border: none; padding: 12px 20px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;
+            margin-top: 10px; text-transform: uppercase; font-size: 14px;
+            transition: background 0.2s;
+        }
+        .notify-btn:hover { background: #2c3e50; }
+        .notify-btn.scheduled { background: #27ae60; }
+        #notify-status { font-size: 12px; margin-top: 6px; color: var(--text-muted); text-align: center; min-height: 18px; }
+
+        /* Alarm modal (fallback for iOS / Firefox) */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.55); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal { background: white; border-radius: 10px; padding: 24px; max-width: 420px; width: 92%; max-height: 80vh; overflow-y: auto; }
+        .modal h3 { margin-bottom: 4px; color: var(--primary); font-size: 17px; }
+        .modal-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+        .alarm-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+        .alarm-item:last-child { border-bottom: none; }
+        .alarm-item-left { flex: 1; min-width: 0; }
+        .alarm-item-title { font-weight: 600; font-size: 14px; }
+        .alarm-item-body { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .alarm-time { font-weight: bold; color: var(--accent); font-size: 15px; white-space: nowrap; }
+        .alarm-day { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px; }
+        .modal-close { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 16px; font-weight: bold; font-size: 14px; }
+
+        /* Print styles */
+        @media print {
+            body { background: #fff; padding: 0; font-size: 11px; color: #000; }
+            .panel, .print-btn, .notify-btn, #notify-status, .tab-bar, .modal-overlay { display: none !important; }
+            .main-layout { display: block; margin-top: 0; }
+            .results-area { display: grid; grid-template-columns: 280px 1fr; gap: 15px; align-items: start; }
+            .section-hidden { display: block !important; }
+            .wrapper { max-width: 100%; margin: 0; }
+            header { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; padding: 5px 0; text-align: left; border-radius: 0; }
+            header h1 { font-size: 18px; margin-bottom: 2px; }
+            header p { font-size: 11px; color: #555 !important; }
+            .card { box-shadow: none; border: 1px solid #eee; margin-bottom: 0; padding: 12px; page-break-inside: avoid; }
+            .card h2 { border-bottom: 1px solid #000; color: #000; font-size: 14px; margin-bottom: 8px; padding-bottom: 2px; }
+            .ingredients-grid { display: block; }
+            .ing-box { background: #fff !important; border: 1px solid #ddd; border-left: 3px solid #000; padding: 8px; margin-bottom: 8px; }
+            .ing-box h3 { font-size: 11px; margin-bottom: 4px; }
+            .ing-box li { font-size: 11px; margin-bottom: 2px; }
+            .ing-box li span { color: #000 !important; }
+            .timeline { padding-left: 15px; margin-top: 5px; border-left: 1px solid #ddd; }
+            .timeline-step { margin-bottom: 12px; }
+            .timeline-step::before { left: -20px; top: 4px; width: 8px; height: 8px; background: #000; border: none; box-shadow: none; }
+            .step-header { cursor: default; }
+            .chevron { display: none; }
+            .step-desc { display: block !important; border-top: none; padding-top: 2px; font-size: 10.5px; color: #333; margin-top: 2px; line-height: 1.3; }
+            .time-tag { background: #000 !important; color: #fff !important; font-size: 9px; padding: 1px 4px; }
+            .step-title { font-size: 12px; color: #000; }
+            .tip-box { background: #fff !important; border: 1px solid #ccc; color: #000; padding: 8px; font-size: 10px; margin-top: 10px; }
+            @page { margin: 0.8cm; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header>
+        <h1>Poolish Pro</h1>
+        <p>Interactive Poolish Workflow &amp; Timeline Engine</p>
+    </header>
+
+    <div class="main-layout">
+        <!-- CONTROLS PANEL -->
+        <div class="panel">
+            <h2>Tweak Parameters</h2>
+
+            <div class="control-group">
+                <label>Number of Pizzas <span class="val-display" id="qty-val">6</span></label>
+                <input type="range" id="pizza-qty" min="1" max="20" value="6" step="1">
+            </div>
+
+            <div class="control-group">
+                <label>Ambient Kitchen Temp <span class="val-display" id="temp-val">22°C</span></label>
+                <input type="range" id="kitchen-temp" min="16" max="30" value="22" step="1">
+            </div>
+
+            <div class="control-group">
+                <label>Target Dinner Time</label>
+                <input type="time" id="target-time" value="18:30">
+            </div>
+
+            <div class="control-group">
+                <label>Pizza Saturday</label>
+                <input type="date" id="pizza-saturday">
+            </div>
+
+            <div class="control-group">
+                <label>Type of Oven</label>
+                <select id="oven-type">
+                    <option value="high-heat" selected>High-Heat Pizza Oven (Ooni/Gozney)</option>
+                    <option value="home-oven">Standard Kitchen Oven (with Steel/Stone)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Flour Strength / Type</label>
+                <select id="flour-type">
+                    <option value="cuoco" selected>Caputo Cuoco (Red) / High Protein (13%+)</option>
+                    <option value="pizzeria">Caputo Pizzeria (Blue) / Medium Protein (~12.5%)</option>
+                </select>
+            </div>
+
+            <button class="print-btn" onclick="window.print()">Print Recipe</button>
+            <button class="notify-btn" id="notify-btn" onclick="scheduleNotifications()">🔔 Schedule Weekend Alerts</button>
+            <p id="notify-status"></p>
+        </div>
+
+        <!-- RESULTS AREA -->
+        <div class="results-area">
+            <!-- Mobile tab bar -->
+            <div class="tab-bar">
+                <button class="tab active" onclick="switchTab('ingredients', this)">Ingredients</button>
+                <button class="tab" onclick="switchTab('timeline', this)">Timeline</button>
+            </div>
+
+            <!-- INGREDIENTS CARD -->
+            <div class="card" data-section="ingredients">
+                <h2>Dynamic Ingredients Breakdown</h2>
+                <div class="ingredients-grid">
+                    <div class="ing-box">
+                        <h3>Phase 1: Saturday Night Poolish</h3>
+                        <ul>
+                            <li>Flour (Caputo): <span id="p-flour">300g</span></li>
+                            <li>Water (Room Temp): <span id="p-water">300g</span></li>
+                            <li>Yeast (Active Dry): <span id="p-yeast">2.0g</span></li>
+                        </ul>
+                    </div>
+                    <div class="ing-box">
+                        <h3>Phase 2: Sunday Main Dough</h3>
+                        <ul>
+                            <li>Flour (Caputo): <span id="d-flour">600g</span></li>
+                            <li>Water (Cold): <span id="d-water">285g</span></li>
+                            <li>Fine Sea Salt: <span id="d-salt">25g</span></li>
+                            <li id="oil-row" style="display:none;">Olive Oil: <span id="d-oil">0g</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="ingredients-grid" style="margin-top: 15px;">
+                    <div class="ing-box accent-box" style="grid-column: 1 / -1;">
+                        <h3>Grand Totals &amp; Metrics</h3>
+                        <ul style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <li>Total Flour: <span id="t-flour">900g</span></li>
+                            <li>Total Water: <span id="t-water">585g</span></li>
+                            <li>Total Dough Weight: <span id="t-weight">1510g</span></li>
+                            <li>Hydration Ratio: <span id="t-hyd">65%</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="tip-box" id="dynamic-warning">
+                    <strong>⭐ Smart System Notification:</strong> Current temperature baseline (22°C) combined with Caputo Cuoco flour guarantees a safe, structured rise window.
+                </div>
+            </div>
+
+            <!-- TIMELINE CARD -->
+            <div class="card" data-section="timeline">
+                <h2>Precision Timeline Schedule</h2>
+                <div class="timeline">
+
+                    <div class="timeline-step" id="step-1">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step1">08:00 PM Sat</div>
+                                <span class="step-title">Initialize Poolish Preferment</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc">Mix all Phase 1 flour, water, and yeast in a large jar or container with a fork until smooth like pancake batter. Cover loosely.</div>
+                    </div>
+
+                    <div class="timeline-step" id="step-2">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step2">08:05 PM Sat</div>
+                                <span class="step-title">Ambient Bench Rest</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc" id="desc-step2">Leave out on the kitchen counter for exactly 1.5 hours to kickstart fermentation active cells.</div>
+                    </div>
+
+                    <div class="timeline-step" id="step-3">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step3">09:30 PM Sat</div>
+                                <span class="step-title">The Cold Brake</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc">Seal container tightly and transfer to the refrigerator for an overnight slow cold fermentation (15–16 hours) to harvest complex flavors.</div>
+                    </div>
+
+                    <div class="timeline-step" id="step-4">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step4">12:30 PM Sun</div>
+                                <span class="step-title">Retrieve Poolish</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc">Pull the poolish from the fridge. It should be highly active, domed, and covered with thousands of micro-bubbles.</div>
+                    </div>
+
+                    <div class="timeline-step" id="step-5">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step5">12:45 PM Sun</div>
+                                <span class="step-title">The Final Dough Integration</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc" id="desc-step5">Dissolve poolish into the remaining cold water. Mix in half the remaining flour, add all the salt, then knead with the remaining flour for 10–12 minutes until matte and smooth. Shape into a large ball and cover for a 30-minute bench rest.</div>
+                    </div>
+
+                    <div class="timeline-step" id="step-6">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step6">01:40 PM Sun</div>
+                                <span class="step-title">Divide and Ball</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc" id="desc-step6">Cut dough cleanly into equal balls (~250g each). Shape tightly and place into individual silicone containers smeared with a tiny wipe of oil. Seal the lids.</div>
+                    </div>
+
+                    <div class="timeline-step" id="step-7">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step7">01:45 PM Sun</div>
+                                <span class="step-title">The Crucial Final Proof Window</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc" id="desc-step7">Leave silicone containers out on the counter. Based on your inputs, they will proof safely for 4.5 hours.</div>
+                    </div>
+
+                    <div class="timeline-step open" id="step-8">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step8">05:45 PM Sun</div>
+                                <span class="step-title">Fire Up Your Oven</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc" id="desc-step8">Ignite your Ooni 12" to maximum flame. Let the floor stone saturate with heat for a minimum of 45 minutes until it approaches 430°C–450°C.</div>
+                    </div>
+
+                    <div class="timeline-step open" id="step-9">
+                        <div class="step-header" role="button" tabindex="0"
+                             onclick="this.parentElement.classList.toggle('open')"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
+                            <div class="step-header-left">
+                                <div class="time-tag" id="time-step9">06:30 PM Sun</div>
+                                <span class="step-title">Stretch, Top &amp; Launch!</span>
+                            </div>
+                            <span class="chevron" aria-hidden="true">›</span>
+                        </div>
+                        <div class="step-desc" id="desc-step9">Drop dough into a bowl of flour/semolina. Push gas to the rim. Stretch cleanly. Turn flame to LOW right before launching to bake without scorching edges. Turn every 15 seconds.</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- iOS / Firefox fallback: show alarm times to set manually -->
+<div class="modal-overlay" id="alarm-modal" onclick="if(event.target===this)closeAlarmModal()">
+    <div class="modal">
+        <h3>Set These Alarms</h3>
+        <p class="modal-subtitle">Scheduled notifications aren't supported in this browser yet. Set these alarms manually on your phone:</p>
+        <div id="alarm-list"></div>
+        <button class="modal-close" onclick="closeAlarmModal()">Done</button>
+    </div>
+</div>
+
+<script>
+    // Module-level step time variables (minutes from midnight, updated on every calculate())
+    let step1_poolishStart = 1200, step2_ambientRest = 1205, step3_coldBrake = 1290;
+    let step4_retrieve = 750, step5_kneading = 765, step6_balling = 805;
+    let step7_proofStart = 810, step8_preheat = 1065, step9_launch = 1110;
+
+    const pizzaQty   = document.getElementById('pizza-qty');
+    const kitchenTemp = document.getElementById('kitchen-temp');
+    const targetTime  = document.getElementById('target-time');
+    const ovenType    = document.getElementById('oven-type');
+    const flourType   = document.getElementById('flour-type');
+    const qtyVal      = document.getElementById('qty-val');
+    const tempVal     = document.getElementById('temp-val');
+
+    function parseTime(tStr) {
+        const [h, m] = tStr.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    function formatTime(minutes, daySuffix) {
+        let mins = ((minutes % 1440) + 1440) % 1440;
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const dh = (h % 12) || 12;
+        return `${dh}:${String(m).padStart(2, '0')} ${ampm}${daySuffix}`;
+    }
+
+    function calculate() {
+        const qty  = parseInt(pizzaQty.value);
+        const temp = parseInt(kitchenTemp.value);
+        const oven = ovenType.value;
+        const flour = flourType.value;
+
+        qtyVal.innerText = qty;
+        tempVal.innerText = temp + '°C';
+
+        // Ingredient math
+        const singleFlour = 150, hydration = 0.65, singleSalt = 4.16, singleYeast = 0.33;
+        const oilPercent = oven === 'home-oven' ? 0.025 : 0;
+
+        const totFlour = singleFlour * qty;
+        const totWater = Math.round(totFlour * hydration);
+        const totSalt  = Math.round(singleSalt * qty);
+        const totYeast = (singleYeast * qty).toFixed(1);
+        const totOil   = Math.round(totFlour * oilPercent);
+
+        const poolishFlour = Math.round(totFlour * 0.3333);
+        const poolishWater = poolishFlour;
+        const mainFlour = totFlour - poolishFlour;
+        const mainWater = totWater - poolishWater;
+
+        document.getElementById('p-flour').innerText = poolishFlour + 'g';
+        document.getElementById('p-water').innerText = poolishWater + 'g';
+        document.getElementById('p-yeast').innerText = totYeast + 'g';
+        document.getElementById('d-flour').innerText = mainFlour + 'g';
+        document.getElementById('d-water').innerText = mainWater + 'g';
+        document.getElementById('d-salt').innerText  = totSalt + 'g';
+        document.getElementById('t-flour').innerText = totFlour + 'g';
+        document.getElementById('t-water').innerText = totWater + 'g';
+        document.getElementById('t-hyd').innerText   = Math.round(hydration * 100) + '%';
+
+        const totalDough = totFlour + totWater + totSalt + totOil;
+        document.getElementById('t-weight').innerText =
+            totalDough + 'g (approx ' + Math.round(totalDough / qty) + 'g/ball)';
+
+        if (totOil > 0) {
+            document.getElementById('oil-row').style.display = 'flex';
+            document.getElementById('d-oil').innerText = totOil + 'g';
+        } else {
+            document.getElementById('oil-row').style.display = 'none';
+        }
+
+        // Timeline dynamics
+        const targetMins = parseTime(targetTime.value);
+        let finalProofMins = 270 - (temp - 22) * 25;
+        finalProofMins = Math.max(120, Math.min(420, finalProofMins));
+        if (flour === 'pizzeria') finalProofMins = Math.round(finalProofMins * 0.85);
+
+        // Update module-level step variables
+        step9_launch    = targetMins;
+        step8_preheat   = step9_launch - 45;
+        step7_proofStart = step9_launch - finalProofMins;
+        step6_balling   = step7_proofStart - 5;
+        step5_kneading  = step6_balling - 40;
+        step4_retrieve  = step5_kneading - 15;
+        step1_poolishStart = 1200;
+        step2_ambientRest  = 1205;
+        step3_coldBrake    = 1290;
+
+        document.getElementById('time-step1').innerText = formatTime(step1_poolishStart, ' Sat');
+        document.getElementById('time-step2').innerText = formatTime(step2_ambientRest,  ' Sat');
+        document.getElementById('time-step3').innerText = formatTime(step3_coldBrake,    ' Sat');
+        document.getElementById('time-step4').innerText = formatTime(step4_retrieve,     ' Sun');
+        document.getElementById('time-step5').innerText = formatTime(step5_kneading,     ' Sun');
+        document.getElementById('time-step6').innerText = formatTime(step6_balling,      ' Sun');
+        document.getElementById('time-step7').innerText = formatTime(step7_proofStart,   ' Sun');
+        document.getElementById('time-step8').innerText = formatTime(step8_preheat,      ' Sun');
+        document.getElementById('time-step9').innerText = formatTime(step9_launch,       ' Sun');
+
+        document.getElementById('desc-step7').innerText =
+            `Leave the individual containers on your kitchen counter. At current ambient temperature (${temp}°C) using ${flour === 'cuoco' ? 'Caputo Red' : 'Caputo Blue'}, the dough balls require exactly ${Math.floor(finalProofMins / 60)}h ${finalProofMins % 60}m to hit peak relaxation.`;
+
+        const ovenName = oven === 'high-heat' ? 'Ooni/Gozney' : 'kitchen oven';
+        document.getElementById('desc-step8').innerText =
+            `Ignite your ${ovenName} to maximum heat. Let the floor stone saturate for a minimum of 45 minutes${oven === 'high-heat' ? ' until it approaches 430°C–450°C' : ' until the steel/stone is fully saturated (250°C+)'}.`;
+
+        const warningBox = document.getElementById('dynamic-warning');
+        if (temp >= 25) {
+            warningBox.innerHTML = `<strong>⚠️ High Temperature Warning:</strong> At ${temp}°C, the ambient rise is heavily accelerated. Keep an eye on the dough balls at the 2-hour mark. If they double in size and flatten out prematurely, execute the <em>Emergency Fridge Brake</em> to slow them down.`;
+            warningBox.style.background = '#fff0f0';
+            warningBox.style.borderLeftColor = '#c0392b';
+        } else if (flour === 'pizzeria' && temp >= 23) {
+            warningBox.innerHTML = `<strong>💡 Flour Property Notice:</strong> You are using Caputo Pizzeria (Blue). This flour has a softer gluten network than the Red bag. Combined with your current room temp, do not let the final proof exceed the suggested calculation or the balls will turn flat and sticky.`;
+            warningBox.style.background = '#fffaf0';
+            warningBox.style.borderLeftColor = '#e67e22';
+        } else {
+            warningBox.innerHTML = `<strong>⭐ Smart System Notification:</strong> Conditions are optimal. Your combination of ${flour === 'cuoco' ? 'Caputo Cuoco (Red)' : 'Caputo Pizzeria (Blue)'} and a balanced room temperature of ${temp}°C will yield structural integrity with pristine leopard spotting.`;
+            warningBox.style.background = '#eef9ff';
+            warningBox.style.borderLeftColor = '#3498db';
+        }
+    }
+
+    // --- Mobile tab switching ---
+    function switchTab(name, btn) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('[data-section]').forEach(s => {
+            s.classList.toggle('section-hidden', s.dataset.section !== name);
+        });
+    }
+
+    // --- Notification scheduling ---
+    function getNextSaturday() {
+        const now = new Date();
+        const daysUntil = (6 - now.getDay() + 7) % 7 || 7;
+        const sat = new Date(now);
+        sat.setDate(now.getDate() + daysUntil);
+        return sat;
+    }
+
+    function toDateInputValue(date) {
+        return [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, '0'),
+            String(date.getDate()).padStart(2, '0')
+        ].join('-');
+    }
+
+    function buildNotifDate(minutesFromMidnight, pizzaSaturdayStr, isSunday) {
+        const [y, mo, d] = pizzaSaturdayStr.split('-').map(Number);
+        const date = new Date(y, mo - 1, d + (isSunday ? 1 : 0), 0, 0, 0, 0);
+        date.setHours(Math.floor(minutesFromMidnight / 60), minutesFromMidnight % 60, 0, 0);
+        return date;
+    }
+
+    async function scheduleNotifications() {
+        if (!('Notification' in window)) {
+            alert('Notifications are not supported in this browser.');
+            return;
+        }
+
+        const pizzaSaturday = document.getElementById('pizza-saturday').value;
+        if (!pizzaSaturday) {
+            alert('Please select a Pizza Saturday date first.');
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            document.getElementById('notify-status').textContent = 'Notifications blocked — please allow in browser settings.';
+            return;
+        }
+
+        const ovenName = ovenType.value === 'high-heat' ? 'Ooni/Gozney' : 'kitchen oven';
+        const notifs = [
+            {
+                title: '🍕 Start Your Poolish',
+                body: 'Mix flour, water & yeast. Cover loosely and leave on the counter.',
+                date: buildNotifDate(step1_poolishStart, pizzaSaturday, false),
+                tag: 'pizza-1'
+            },
+            {
+                title: '❄️ Poolish → Fridge',
+                body: 'Seal tightly and refrigerate for overnight cold fermentation.',
+                date: buildNotifDate(step3_coldBrake, pizzaSaturday, false),
+                tag: 'pizza-3'
+            },
+            {
+                title: '🫙 Retrieve Poolish',
+                body: 'Pull it out — it should be domed and full of micro-bubbles.',
+                date: buildNotifDate(step4_retrieve, pizzaSaturday, true),
+                tag: 'pizza-4'
+            },
+            {
+                title: '🔥 Fire Up Your Oven',
+                body: `Start preheating your ${ovenName} now — needs 45 minutes to reach temperature.`,
+                date: buildNotifDate(step8_preheat, pizzaSaturday, true),
+                tag: 'pizza-8'
+            },
+            {
+                title: '🚀 Stretch, Top & Launch!',
+                body: 'Your dough is at peak. Time to make pizza!',
+                date: buildNotifDate(step9_launch, pizzaSaturday, true),
+                tag: 'pizza-9'
+            }
+        ];
+
+        const hasTriggersAPI = 'serviceWorker' in navigator && 'TimestampTrigger' in window;
+
+        if (hasTriggersAPI) {
+            const registration = await navigator.serviceWorker.ready;
+            const existing = await registration.getNotifications();
+            existing.forEach(n => n.close());
+            for (const n of notifs) {
+                await registration.showNotification(n.title, {
+                    body: n.body,
+                    showTrigger: new TimestampTrigger(n.date.getTime()),
+                    tag: n.tag,
+                    icon: 'icons/icon-192.png',
+                    badge: 'icons/icon-192.png',
+                });
+            }
+            const btn = document.getElementById('notify-btn');
+            btn.textContent = '✓ Alerts Scheduled';
+            btn.classList.add('scheduled');
+            const [y, mo, d] = pizzaSaturday.split('-').map(Number);
+            const sat = new Date(y, mo - 1, d);
+            document.getElementById('notify-status').textContent =
+                `5 alerts set for ${sat.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`;
+        } else {
+            showAlarmModal(notifs, pizzaSaturday);
+        }
+    }
+
+    function showAlarmModal(notifs, pizzaSaturday) {
+        const [y, mo, d] = pizzaSaturday.split('-').map(Number);
+        const sunDate = new Date(y, mo - 1, d + 1);
+        const list = document.getElementById('alarm-list');
+        list.innerHTML = '';
+        notifs.forEach(n => {
+            const isSun = n.date >= sunDate;
+            const dayLabel = isSun
+                ? sunDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+                : new Date(y, mo - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+            const timeStr = n.date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const item = document.createElement('div');
+            item.className = 'alarm-item';
+            item.innerHTML = `
+                <div class="alarm-item-left">
+                    <div class="alarm-item-title">${n.title}</div>
+                    <div class="alarm-item-body">${n.body}</div>
+                </div>
+                <div>
+                    <div class="alarm-time">${timeStr}</div>
+                    <div class="alarm-day">${dayLabel}</div>
+                </div>`;
+            list.appendChild(item);
+        });
+        document.getElementById('alarm-modal').classList.add('show');
+    }
+
+    function closeAlarmModal() {
+        document.getElementById('alarm-modal').classList.remove('show');
+    }
+
+    // --- Service worker registration ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js');
+    }
+
+    // --- Init ---
+    document.getElementById('pizza-saturday').value = toDateInputValue(getNextSaturday());
+
+    [pizzaQty, kitchenTemp, targetTime, ovenType, flourType].forEach(el => {
+        el.addEventListener('input', calculate);
+        el.addEventListener('change', calculate);
+    });
+
+    calculate();
+</script>
+</body>
+</html>
