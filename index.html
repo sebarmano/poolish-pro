@@ -35,14 +35,25 @@
 
         .control-group { margin-bottom: 20px; }
         .control-group label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; color: var(--text-main); }
-        .control-group input[type="range"],
         .control-group input[type="time"],
-        .control-group input[type="date"],
         .control-group select {
             width: 100%; padding: 10px; border: 1px solid var(--border);
             border-radius: 4px; font-size: 14px; background: #fff;
         }
-        .val-display { float: right; color: var(--accent); font-weight: bold; }
+
+        /* +/− counter */
+        .counter { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+        .counter-btn {
+            background: var(--primary); color: white; border: none;
+            width: 48px; font-size: 22px; cursor: pointer; flex-shrink: 0;
+            transition: background 0.15s; display: flex; align-items: center; justify-content: center;
+        }
+        .counter-btn:hover { background: #2c3e50; }
+        .counter-btn:active { background: var(--accent); }
+        .counter-val {
+            flex: 1; text-align: center; font-size: 18px; font-weight: bold;
+            color: var(--primary); padding: 10px 0; user-select: none;
+        }
 
         /* Mobile tab bar */
         .tab-bar { display: none; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 16px; }
@@ -134,34 +145,33 @@
         .alarm-day { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px; }
         .modal-close { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 16px; font-weight: bold; font-size: 14px; }
 
-        /* Print styles */
+        /* Print styles — target single A4 page */
         @media print {
-            body { background: #fff; padding: 0; font-size: 11px; color: #000; }
-            .panel, .print-btn, .notify-btn, #notify-status, .tab-bar, .modal-overlay { display: none !important; }
+            body { background: #fff; padding: 0; font-size: 9.5px; color: #000; }
+            .panel, .print-btn, .notify-btn, #notify-status, .tab-bar, .modal-overlay, .tip-box { display: none !important; }
             .main-layout { display: block; margin-top: 0; }
-            .results-area { display: grid; grid-template-columns: 280px 1fr; gap: 15px; align-items: start; }
+            .results-area { display: grid; grid-template-columns: 240px 1fr; gap: 10px; align-items: start; }
             .section-hidden { display: block !important; }
             .wrapper { max-width: 100%; margin: 0; }
-            header { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; padding: 5px 0; text-align: left; border-radius: 0; }
-            header h1 { font-size: 18px; margin-bottom: 2px; }
-            header p { font-size: 11px; color: #555 !important; }
-            .card { box-shadow: none; border: 1px solid #eee; margin-bottom: 0; padding: 12px; page-break-inside: avoid; }
-            .card h2 { border-bottom: 1px solid #000; color: #000; font-size: 14px; margin-bottom: 8px; padding-bottom: 2px; }
+            header { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; padding: 4px 0; text-align: left; border-radius: 0; }
+            header h1 { font-size: 15px; margin-bottom: 1px; }
+            header p { font-size: 9px; color: #555 !important; }
+            .card { box-shadow: none; border: 1px solid #eee; margin-bottom: 0; padding: 8px; page-break-inside: avoid; }
+            .card h2 { border-bottom: 1px solid #000; color: #000; font-size: 11px; margin-bottom: 6px; padding-bottom: 2px; }
             .ingredients-grid { display: block; }
-            .ing-box { background: #fff !important; border: 1px solid #ddd; border-left: 3px solid #000; padding: 8px; margin-bottom: 8px; }
-            .ing-box h3 { font-size: 11px; margin-bottom: 4px; }
-            .ing-box li { font-size: 11px; margin-bottom: 2px; }
+            .ing-box { background: #fff !important; border: 1px solid #ddd; border-left: 3px solid #000; padding: 5px 7px; margin-bottom: 5px; }
+            .ing-box h3 { font-size: 9px; margin-bottom: 3px; }
+            .ing-box li { font-size: 9px; margin-bottom: 1px; }
             .ing-box li span { color: #000 !important; }
-            .timeline { padding-left: 15px; margin-top: 5px; border-left: 1px solid #ddd; }
-            .timeline-step { margin-bottom: 12px; }
-            .timeline-step::before { left: -20px; top: 4px; width: 8px; height: 8px; background: #000; border: none; box-shadow: none; }
+            .timeline { padding-left: 13px; margin-top: 4px; border-left: 1px solid #ddd; }
+            .timeline-step { margin-bottom: 5px; }
+            .timeline-step::before { left: -18px; top: 3px; width: 7px; height: 7px; background: #000; border: none; box-shadow: none; }
             .step-header { cursor: default; }
             .chevron { display: none; }
-            .step-desc { display: block !important; border-top: none; padding-top: 2px; font-size: 10.5px; color: #333; margin-top: 2px; line-height: 1.3; }
-            .time-tag { background: #000 !important; color: #fff !important; font-size: 9px; padding: 1px 4px; }
-            .step-title { font-size: 12px; color: #000; }
-            .tip-box { background: #fff !important; border: 1px solid #ccc; color: #000; padding: 8px; font-size: 10px; margin-top: 10px; }
-            @page { margin: 0.8cm; }
+            .step-desc { display: block !important; border-top: none; padding-top: 1px; font-size: 8.5px; color: #333; margin-top: 1px; line-height: 1.25; }
+            .time-tag { background: #000 !important; color: #fff !important; font-size: 8px; padding: 1px 3px; }
+            .step-title { font-size: 9.5px; color: #000; }
+            @page { size: A4 portrait; margin: 0.6cm; }
         }
     </style>
 </head>
@@ -179,23 +189,26 @@
             <h2>Tweak Parameters</h2>
 
             <div class="control-group">
-                <label>Number of Pizzas <span class="val-display" id="qty-val">6</span></label>
-                <input type="range" id="pizza-qty" min="1" max="20" value="6" step="1">
+                <label>Number of Pizzas</label>
+                <div class="counter">
+                    <button class="counter-btn" onclick="adjustValue('qty',-1)">−</button>
+                    <span class="counter-val" id="qty-val">6</span>
+                    <button class="counter-btn" onclick="adjustValue('qty',1)">+</button>
+                </div>
             </div>
 
             <div class="control-group">
-                <label>Ambient Kitchen Temp <span class="val-display" id="temp-val">22°C</span></label>
-                <input type="range" id="kitchen-temp" min="16" max="30" value="22" step="1">
+                <label>Ambient Kitchen Temp</label>
+                <div class="counter">
+                    <button class="counter-btn" onclick="adjustValue('temp',-1)">−</button>
+                    <span class="counter-val" id="temp-val">22°C</span>
+                    <button class="counter-btn" onclick="adjustValue('temp',1)">+</button>
+                </div>
             </div>
 
             <div class="control-group">
                 <label>Target Dinner Time</label>
                 <input type="time" id="target-time" value="18:30">
-            </div>
-
-            <div class="control-group">
-                <label>Pizza Saturday</label>
-                <input type="date" id="pizza-saturday">
             </div>
 
             <div class="control-group">
@@ -266,7 +279,7 @@
             </div>
 
             <!-- TIMELINE CARD -->
-            <div class="card" data-section="timeline">
+            <div class="card section-hidden" data-section="timeline">
                 <h2>Precision Timeline Schedule</h2>
                 <div class="timeline">
 
@@ -361,7 +374,7 @@
                         <div class="step-desc" id="desc-step7">Leave silicone containers out on the counter. Based on your inputs, they will proof safely for 4.5 hours.</div>
                     </div>
 
-                    <div class="timeline-step open" id="step-8">
+                    <div class="timeline-step" id="step-8">
                         <div class="step-header" role="button" tabindex="0"
                              onclick="this.parentElement.classList.toggle('open')"
                              onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
@@ -374,7 +387,7 @@
                         <div class="step-desc" id="desc-step8">Ignite your Ooni 12" to maximum flame. Let the floor stone saturate with heat for a minimum of 45 minutes until it approaches 430°C–450°C.</div>
                     </div>
 
-                    <div class="timeline-step open" id="step-9">
+                    <div class="timeline-step" id="step-9">
                         <div class="step-header" role="button" tabindex="0"
                              onclick="this.parentElement.classList.toggle('open')"
                              onkeydown="if(event.key==='Enter'||event.key===' ')this.parentElement.classList.toggle('open')">
@@ -409,13 +422,24 @@
     let step4_retrieve = 750, step5_kneading = 765, step6_balling = 805;
     let step7_proofStart = 810, step8_preheat = 1065, step9_launch = 1110;
 
-    const pizzaQty   = document.getElementById('pizza-qty');
-    const kitchenTemp = document.getElementById('kitchen-temp');
-    const targetTime  = document.getElementById('target-time');
-    const ovenType    = document.getElementById('oven-type');
-    const flourType   = document.getElementById('flour-type');
-    const qtyVal      = document.getElementById('qty-val');
-    const tempVal     = document.getElementById('temp-val');
+    // Counter state
+    let qtyValue = 6, tempValue = 22;
+    const QTY_MIN = 1, QTY_MAX = 20, TEMP_MIN = 16, TEMP_MAX = 30;
+
+    function adjustValue(type, delta) {
+        if (type === 'qty') {
+            qtyValue = Math.max(QTY_MIN, Math.min(QTY_MAX, qtyValue + delta));
+            document.getElementById('qty-val').textContent = qtyValue;
+        } else {
+            tempValue = Math.max(TEMP_MIN, Math.min(TEMP_MAX, tempValue + delta));
+            document.getElementById('temp-val').textContent = tempValue + '°C';
+        }
+        calculate();
+    }
+
+    const targetTime = document.getElementById('target-time');
+    const ovenType   = document.getElementById('oven-type');
+    const flourType  = document.getElementById('flour-type');
 
     function parseTime(tStr) {
         const [h, m] = tStr.split(':').map(Number);
@@ -432,13 +456,10 @@
     }
 
     function calculate() {
-        const qty  = parseInt(pizzaQty.value);
-        const temp = parseInt(kitchenTemp.value);
+        const qty  = qtyValue;
+        const temp = tempValue;
         const oven = ovenType.value;
         const flour = flourType.value;
-
-        qtyVal.innerText = qty;
-        tempVal.innerText = temp + '°C';
 
         // Ingredient math
         const singleFlour = 150, hydration = 0.65, singleSalt = 4.16, singleYeast = 0.33;
@@ -538,36 +559,24 @@
     // --- Notification scheduling ---
     function getNextSaturday() {
         const now = new Date();
-        const daysUntil = (6 - now.getDay() + 7) % 7 || 7;
+        // 0=Sun…6=Sat. If today is Sat, use today; otherwise find next Sat.
+        const daysUntil = (6 - now.getDay() + 7) % 7;
         const sat = new Date(now);
         sat.setDate(now.getDate() + daysUntil);
+        sat.setHours(0, 0, 0, 0);
         return sat;
     }
 
-    function toDateInputValue(date) {
-        return [
-            date.getFullYear(),
-            String(date.getMonth() + 1).padStart(2, '0'),
-            String(date.getDate()).padStart(2, '0')
-        ].join('-');
-    }
-
-    function buildNotifDate(minutesFromMidnight, pizzaSaturdayStr, isSunday) {
-        const [y, mo, d] = pizzaSaturdayStr.split('-').map(Number);
-        const date = new Date(y, mo - 1, d + (isSunday ? 1 : 0), 0, 0, 0, 0);
-        date.setHours(Math.floor(minutesFromMidnight / 60), minutesFromMidnight % 60, 0, 0);
-        return date;
+    function buildNotifDate(minutesFromMidnight, saturdayDate, isSunday) {
+        const base = new Date(saturdayDate);
+        if (isSunday) base.setDate(base.getDate() + 1);
+        base.setHours(Math.floor(minutesFromMidnight / 60), minutesFromMidnight % 60, 0, 0);
+        return base;
     }
 
     async function scheduleNotifications() {
         if (!('Notification' in window)) {
             alert('Notifications are not supported in this browser.');
-            return;
-        }
-
-        const pizzaSaturday = document.getElementById('pizza-saturday').value;
-        if (!pizzaSaturday) {
-            alert('Please select a Pizza Saturday date first.');
             return;
         }
 
@@ -577,36 +586,38 @@
             return;
         }
 
+        const sat = getNextSaturday();
         const ovenName = ovenType.value === 'high-heat' ? 'Ooni/Gozney' : 'kitchen oven';
+
         const notifs = [
             {
                 title: '🍕 Start Your Poolish',
                 body: 'Mix flour, water & yeast. Cover loosely and leave on the counter.',
-                date: buildNotifDate(step1_poolishStart, pizzaSaturday, false),
+                date: buildNotifDate(step1_poolishStart, sat, false),
                 tag: 'pizza-1'
             },
             {
                 title: '❄️ Poolish → Fridge',
                 body: 'Seal tightly and refrigerate for overnight cold fermentation.',
-                date: buildNotifDate(step3_coldBrake, pizzaSaturday, false),
+                date: buildNotifDate(step3_coldBrake, sat, false),
                 tag: 'pizza-3'
             },
             {
                 title: '🫙 Retrieve Poolish',
                 body: 'Pull it out — it should be domed and full of micro-bubbles.',
-                date: buildNotifDate(step4_retrieve, pizzaSaturday, true),
+                date: buildNotifDate(step4_retrieve, sat, true),
                 tag: 'pizza-4'
             },
             {
                 title: '🔥 Fire Up Your Oven',
                 body: `Start preheating your ${ovenName} now — needs 45 minutes to reach temperature.`,
-                date: buildNotifDate(step8_preheat, pizzaSaturday, true),
+                date: buildNotifDate(step8_preheat, sat, true),
                 tag: 'pizza-8'
             },
             {
                 title: '🚀 Stretch, Top & Launch!',
                 body: 'Your dough is at peak. Time to make pizza!',
-                date: buildNotifDate(step9_launch, pizzaSaturday, true),
+                date: buildNotifDate(step9_launch, sat, true),
                 tag: 'pizza-9'
             }
         ];
@@ -629,25 +640,23 @@
             const btn = document.getElementById('notify-btn');
             btn.textContent = '✓ Alerts Scheduled';
             btn.classList.add('scheduled');
-            const [y, mo, d] = pizzaSaturday.split('-').map(Number);
-            const sat = new Date(y, mo - 1, d);
             document.getElementById('notify-status').textContent =
-                `5 alerts set for ${sat.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`;
+                `5 alerts set for ${sat.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}`;
         } else {
-            showAlarmModal(notifs, pizzaSaturday);
+            showAlarmModal(notifs, sat);
         }
     }
 
-    function showAlarmModal(notifs, pizzaSaturday) {
-        const [y, mo, d] = pizzaSaturday.split('-').map(Number);
-        const sunDate = new Date(y, mo - 1, d + 1);
+    function showAlarmModal(notifs, saturdayDate) {
+        const sunDate = new Date(saturdayDate);
+        sunDate.setDate(sunDate.getDate() + 1);
         const list = document.getElementById('alarm-list');
         list.innerHTML = '';
         notifs.forEach(n => {
             const isSun = n.date >= sunDate;
             const dayLabel = isSun
                 ? sunDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
-                : new Date(y, mo - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+                : saturdayDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
             const timeStr = n.date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             const item = document.createElement('div');
             item.className = 'alarm-item';
@@ -675,9 +684,7 @@
     }
 
     // --- Init ---
-    document.getElementById('pizza-saturday').value = toDateInputValue(getNextSaturday());
-
-    [pizzaQty, kitchenTemp, targetTime, ovenType, flourType].forEach(el => {
+    [targetTime, ovenType, flourType].forEach(el => {
         el.addEventListener('input', calculate);
         el.addEventListener('change', calculate);
     });
