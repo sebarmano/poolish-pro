@@ -541,12 +541,13 @@
 </div>
 
 <script>
-    // Module-level step time variables (minutes from midnight, updated on every calculate())
-    let step1_poolishStart = 1200, step2_ambientRest = 1205, step3_coldBrake = 1290;
-    let step4_retrieve = 750, step5_kneading = 765, step6_balling = 805;
-    let step7_proofStart = 810, step8_preheat = 1065, step9_launch = 1110;
+    // All step times in absolute minutes from Saturday midnight.
+    // Values < 1440 fall on Saturday; values >= 1440 fall on Sunday.
+    // Defaults pre-computed for 6:30 PM dinner at 22°C with Caputo Cuoco.
+    let step1_poolishStart = 1165, step2_ambientRest = 1170, step3_coldBrake = 1260;
+    let step4_retrieve = 2220, step5_kneading = 2235, step6_balling = 2275;
+    let step7_proofStart = 2280, step8_preheat = 2505, step9_launch = 2550;
 
-    // Counter state
     let qtyValue = 6, tempValue = 22;
     const QTY_MIN = 1, QTY_MAX = 20, TEMP_MIN = 16, TEMP_MAX = 30;
 
@@ -587,7 +588,7 @@
         if (changedTile) {
             const tile = document.getElementById('tile-' + changedTile);
             tile.classList.remove('flip-change');
-            void tile.offsetWidth; // reflow to restart animation
+            void tile.offsetWidth;
             tile.classList.add('flip-change');
         }
         calculate();
@@ -613,18 +614,17 @@
     const ovenType  = document.getElementById('oven-type');
     const flourType = document.getElementById('flour-type');
 
-    function parseTime(tStr) {
-        const [h, m] = tStr.split(':').map(Number);
-        return h * 60 + m;
-    }
-
-    function formatTime(minutes, daySuffix) {
-        let mins = ((minutes % 1440) + 1440) % 1440;
-        const h = Math.floor(mins / 60);
-        const m = mins % 60;
+    // Converts absolute minutes from Saturday midnight into a display string.
+    // Automatically labels the time "Sat" or "Sun" based on whether it falls
+    // before or after minute 1440 (Sunday midnight).
+    function formatTime(absoluteMins) {
+        const day = absoluteMins >= 1440 ? ' Sun' : ' Sat';
+        const minsInDay = ((absoluteMins % 1440) + 1440) % 1440;
+        const h = Math.floor(minsInDay / 60);
+        const m = minsInDay % 60;
         const ampm = h >= 12 ? 'PM' : 'AM';
         const dh = (h % 12) || 12;
-        return `${dh}:${String(m).padStart(2, '0')} ${ampm}${daySuffix}`;
+        return `${dh}:${String(m).padStart(2, '0')} ${ampm}${day}`;
     }
 
     function calculate() {
@@ -633,7 +633,7 @@
         const oven = ovenType.value;
         const flour = flourType.value;
 
-        // Ingredient math
+        // --- Ingredient math ---
         const singleFlour = 150, hydration = 0.65, singleSalt = 4.16, singleYeast = 0.33;
         const oilPercent = oven === 'home-oven' ? 0.025 : 0;
 
@@ -669,32 +669,36 @@
             document.getElementById('oil-row').style.display = 'none';
         }
 
-        // Timeline dynamics
-        const targetMins = clockHours * 60 + clockMinutes;
+        // --- Timeline: work backwards from dinner ---
+        // Final proof duration varies with temperature; clamped between 2 h and 7 h.
         let finalProofMins = 270 - (temp - 22) * 25;
         finalProofMins = Math.max(120, Math.min(420, finalProofMins));
         if (flour === 'pizzeria') finalProofMins = Math.round(finalProofMins * 0.85);
 
-        // Update module-level step variables
-        step9_launch    = targetMins;
-        step8_preheat   = step9_launch - 45;
-        step7_proofStart = step9_launch - finalProofMins;
-        step6_balling   = step7_proofStart - 5;
-        step5_kneading  = step6_balling - 40;
-        step4_retrieve  = step5_kneading - 15;
-        step1_poolishStart = 1200;
-        step2_ambientRest  = 1205;
-        step3_coldBrake    = 1290;
+        // Sunday dinner time = Saturday midnight (1440 min) + dinner clock minutes.
+        step9_launch      = 1440 + clockHours * 60 + clockMinutes;  // Step 9: Dinner
+        step8_preheat     = step9_launch - 45;                       // Step 8: Ooni preheat
+        step7_proofStart  = step9_launch - finalProofMins;           // Step 7: Final proof start
+        step6_balling     = step7_proofStart - 5;                    // Step 6: Balling
+        step5_kneading    = step6_balling - 40;                      // Step 5: Knead (10 min) + bench rest (30 min)
+        step4_retrieve    = step5_kneading - 15;                     // Step 4: Retrieve poolish
+        step3_coldBrake   = step4_retrieve - 960;                    // Step 3: Fridge entry — exactly 16 h before retrieval
+        step2_ambientRest = step3_coldBrake - 90;                    // Step 2: Ambient rest — 1.5 h before fridge
+        step1_poolishStart = step2_ambientRest - 5;                  // Step 1: Mix poolish — 5 min before ambient rest
 
-        document.getElementById('time-step1').innerText = formatTime(step1_poolishStart, ' Sat');
-        document.getElementById('time-step2').innerText = formatTime(step2_ambientRest,  ' Sat');
-        document.getElementById('time-step3').innerText = formatTime(step3_coldBrake,    ' Sat');
-        document.getElementById('time-step4').innerText = formatTime(step4_retrieve,     ' Sun');
-        document.getElementById('time-step5').innerText = formatTime(step5_kneading,     ' Sun');
-        document.getElementById('time-step6').innerText = formatTime(step6_balling,      ' Sun');
-        document.getElementById('time-step7').innerText = formatTime(step7_proofStart,   ' Sun');
-        document.getElementById('time-step8').innerText = formatTime(step8_preheat,      ' Sun');
-        document.getElementById('time-step9').innerText = formatTime(step9_launch,       ' Sun');
+        document.getElementById('time-step1').innerText = formatTime(step1_poolishStart);
+        document.getElementById('time-step2').innerText = formatTime(step2_ambientRest);
+        document.getElementById('time-step3').innerText = formatTime(step3_coldBrake);
+        document.getElementById('time-step4').innerText = formatTime(step4_retrieve);
+        document.getElementById('time-step5').innerText = formatTime(step5_kneading);
+        document.getElementById('time-step6').innerText = formatTime(step6_balling);
+        document.getElementById('time-step7').innerText = formatTime(step7_proofStart);
+        document.getElementById('time-step8').innerText = formatTime(step8_preheat);
+        document.getElementById('time-step9').innerText = formatTime(step9_launch);
+
+        // Dynamic step descriptions
+        document.getElementById('desc-step2').innerText =
+            `Leave on the kitchen counter for exactly 1.5 hours to kickstart fermentation active cells. Transfer to the fridge at ${formatTime(step3_coldBrake)}.`;
 
         document.getElementById('desc-step7').innerText =
             `Leave the individual containers on your kitchen counter. At current ambient temperature (${temp}°C) using ${flour === 'cuoco' ? 'Caputo Red' : 'Caputo Blue'}, the dough balls require exactly ${Math.floor(finalProofMins / 60)}h ${finalProofMins % 60}m to hit peak relaxation.`;
@@ -731,7 +735,6 @@
     // --- Notification scheduling ---
     function getNextSaturday() {
         const now = new Date();
-        // 0=Sun…6=Sat. If today is Sat, use today; otherwise find next Sat.
         const daysUntil = (6 - now.getDay() + 7) % 7;
         const sat = new Date(now);
         sat.setDate(now.getDate() + daysUntil);
@@ -739,10 +742,14 @@
         return sat;
     }
 
-    function buildNotifDate(minutesFromMidnight, saturdayDate, isSunday) {
+    // Converts absolute minutes from Saturday midnight into a real Date object.
+    // dayOffset is derived automatically so Saturday and Sunday times both work.
+    function buildNotifDate(absoluteMins, saturdayDate) {
         const base = new Date(saturdayDate);
-        if (isSunday) base.setDate(base.getDate() + 1);
-        base.setHours(Math.floor(minutesFromMidnight / 60), minutesFromMidnight % 60, 0, 0);
+        const dayOffset = Math.floor(absoluteMins / 1440);
+        const minsInDay = absoluteMins % 1440;
+        base.setDate(base.getDate() + dayOffset);
+        base.setHours(Math.floor(minsInDay / 60), minsInDay % 60, 0, 0);
         return base;
     }
 
@@ -765,31 +772,31 @@
             {
                 title: '🍕 Start Your Poolish',
                 body: 'Mix flour, water & yeast. Cover loosely and leave on the counter.',
-                date: buildNotifDate(step1_poolishStart, sat, false),
+                date: buildNotifDate(step1_poolishStart, sat),
                 tag: 'pizza-1'
             },
             {
                 title: '❄️ Poolish → Fridge',
-                body: 'Seal tightly and refrigerate for overnight cold fermentation.',
-                date: buildNotifDate(step3_coldBrake, sat, false),
+                body: 'Seal tightly and refrigerate for exactly 16 hours of cold fermentation.',
+                date: buildNotifDate(step3_coldBrake, sat),
                 tag: 'pizza-3'
             },
             {
                 title: '🫙 Retrieve Poolish',
                 body: 'Pull it out — it should be domed and full of micro-bubbles.',
-                date: buildNotifDate(step4_retrieve, sat, true),
+                date: buildNotifDate(step4_retrieve, sat),
                 tag: 'pizza-4'
             },
             {
                 title: '🔥 Fire Up Your Oven',
                 body: `Start preheating your ${ovenName} now — needs 45 minutes to reach temperature.`,
-                date: buildNotifDate(step8_preheat, sat, true),
+                date: buildNotifDate(step8_preheat, sat),
                 tag: 'pizza-8'
             },
             {
                 title: '🚀 Stretch, Top & Launch!',
                 body: 'Your dough is at peak. Time to make pizza!',
-                date: buildNotifDate(step9_launch, sat, true),
+                date: buildNotifDate(step9_launch, sat),
                 tag: 'pizza-9'
             }
         ];
@@ -850,12 +857,10 @@
         document.getElementById('alarm-modal').classList.remove('show');
     }
 
-    // --- Service worker registration ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js');
     }
 
-    // --- Init ---
     updateThermo();
     [ovenType, flourType].forEach(el => {
         el.addEventListener('input', calculate);
